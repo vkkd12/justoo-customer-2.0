@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform } from "react-native";
 import { apiPost, ApiError } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import AppButton from "../components/AppButton";
-import { colors, shadows } from "../theme";
+import InlineError from "../components/InlineError";
+import { colors, radii, shadows, spacing, typography } from "../theme";
 
 export default function VerifyOtpScreen({ route }) {
     const { completeLogin } = useAuth();
@@ -44,84 +45,124 @@ export default function VerifyOtpScreen({ route }) {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.hero}>
-                <Text style={styles.kicker}>Two-step sign in</Text>
-                <Text style={styles.title}>Enter your verification code</Text>
-                <Text style={styles.subtitle}>Sent to {phone || "your phone"}</Text>
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+            <View style={styles.content}>
+                {/* Hero section */}
+                <View style={styles.hero}>
+                    <View style={styles.iconCircle}>
+                        <Text style={styles.iconEmoji}>🔐</Text>
+                    </View>
+                    <Text style={styles.title}>Verification code</Text>
+                    <Text style={styles.subtitle}>
+                        Enter the 6-digit code sent to{"\n"}
+                        <Text style={styles.phoneHighlight}>{phone || "your phone"}</Text>
+                    </Text>
+                </View>
+
+                {/* Form card */}
+                <View style={styles.card}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>One-time code</Text>
+                        <TextInput
+                            value={otp}
+                            onChangeText={setOtp}
+                            placeholder="Enter 6-digit code"
+                            placeholderTextColor={colors.muted}
+                            keyboardType="number-pad"
+                            style={styles.input}
+                            editable={!loading}
+                            maxLength={6}
+                            textAlign="center"
+                        />
+                    </View>
+
+                    <InlineError code={error} />
+
+                    <AppButton
+                        title="Verify & Continue"
+                        onPress={onVerify}
+                        disabled={!canSubmit}
+                        loading={loading}
+                        size="large"
+                        fullWidth
+                    />
+                </View>
             </View>
-
-            <View style={styles.card}>
-                <Text style={styles.label}>One-time code</Text>
-                <TextInput
-                    value={otp}
-                    onChangeText={setOtp}
-                    placeholder="6-digit code"
-                    keyboardType="number-pad"
-                    style={styles.input}
-                    editable={!loading}
-                />
-
-                {error ? <Text style={styles.error}>Error: {error}</Text> : null}
-
-                {loading ? <ActivityIndicator /> : <AppButton title="Verify" onPress={onVerify} disabled={!canSubmit} />}
-            </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
         backgroundColor: colors.page,
+    },
+    content: {
+        flex: 1,
         justifyContent: "center",
+        paddingHorizontal: spacing.xl,
+        paddingBottom: spacing.xxxl,
     },
     hero: {
-        marginBottom: 16,
-        gap: 6,
+        alignItems: "center",
+        marginBottom: spacing.xxl,
     },
-    kicker: {
-        color: colors.accent,
-        fontWeight: "700",
-        letterSpacing: 0.5,
-        textTransform: "uppercase",
-        fontSize: 12,
+    iconCircle: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: colors.accentLight,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: spacing.lg,
+    },
+    iconEmoji: {
+        fontSize: 32,
     },
     title: {
-        fontSize: 26,
-        fontWeight: "700",
+        fontSize: typography.largeTitle.fontSize,
+        fontWeight: "800",
         color: colors.text,
+        textAlign: "center",
+        marginBottom: spacing.sm,
     },
     subtitle: {
-        fontSize: 14,
-        color: colors.muted,
+        fontSize: typography.body.fontSize,
+        color: colors.textSecondary,
+        textAlign: "center",
+        lineHeight: 22,
+    },
+    phoneHighlight: {
+        fontWeight: "700",
+        color: colors.text,
     },
     card: {
         backgroundColor: colors.card,
-        borderRadius: 16,
-        padding: 18,
-        gap: 12,
+        borderRadius: radii.xl,
+        padding: spacing.xl,
+        gap: spacing.lg,
         ...shadows.card,
-        borderWidth: 1,
-        borderColor: colors.border,
+    },
+    inputGroup: {
+        gap: spacing.sm,
     },
     label: {
-        fontSize: 14,
+        fontSize: typography.callout.fontSize,
         fontWeight: "600",
         color: colors.text,
+        textAlign: "center",
     },
     input: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        backgroundColor: "#f9fafb",
-        fontSize: 16,
-    },
-    error: {
-        color: colors.danger,
-        fontWeight: "600",
+        backgroundColor: colors.page,
+        borderRadius: radii.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.lg,
+        fontSize: 24,
+        fontWeight: "700",
+        color: colors.text,
+        letterSpacing: 8,
     },
 });

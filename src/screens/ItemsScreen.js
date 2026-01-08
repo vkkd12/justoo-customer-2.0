@@ -7,6 +7,7 @@ import {
     Text,
     TextInput,
     View,
+    Pressable,
 } from "react-native";
 
 import { ApiError, apiGet } from "../api/http";
@@ -15,7 +16,7 @@ import { useCart } from "../cart/CartContext";
 import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
 import ItemCard from "../components/ItemCard";
-import { colors, shadows } from "../theme";
+import { colors, radii, shadows, spacing, typography } from "../theme";
 
 export default function ItemsScreen({ navigation }) {
     const { logout } = useAuth();
@@ -58,61 +59,89 @@ export default function ItemsScreen({ navigation }) {
     if (loading) {
         return (
             <View style={styles.loader}>
-                <ActivityIndicator />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <View style={styles.heroRow}>
-                <View style={{ flex: 1 }}>
-                    <Text style={styles.kicker}>Discover</Text>
-                    <Text style={styles.title}>Shop fresh items</Text>
-                    <Text style={styles.subtitle}>Browse, search, and add to your cart in a tap.</Text>
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={styles.headerTop}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.greeting}>Hello there 👋</Text>
+                        <Text style={styles.title}>What are you looking for?</Text>
+                    </View>
+                    <Pressable
+                        style={styles.cartBadge}
+                        onPress={() => navigation.navigate("Cart")}
+                    >
+                        <Text style={styles.cartCount}>{totalCount}</Text>
+                        <Text style={styles.cartLabel}>Cart</Text>
+                    </Pressable>
                 </View>
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{totalCount}</Text>
-                    <Text style={styles.badgeLabel}>Cart</Text>
-                </View>
-            </View>
 
-            <View style={styles.actions}>
-                <AppButton title="Profile" onPress={() => navigation.navigate("Profile")} variant="ghost" compact />
-                <AppButton
-                    title="Account"
-                    onPress={() => navigation.navigate("AccountStatus")}
-                    variant="ghost"
-                    compact
-                />
-                <AppButton title="Cart" onPress={() => navigation.navigate("Cart")} compact />
-                <AppButton title="Orders" onPress={() => navigation.navigate("Orders")} variant="ghost" compact />
-                <AppButton title="Logout" onPress={logout} variant="danger" compact />
-            </View>
-
-            <View style={styles.searchCard}>
-                <Text style={styles.searchLabel}>Search the catalog</Text>
+                {/* Search */}
                 <View style={styles.searchRow}>
                     <TextInput
                         value={q}
                         onChangeText={setQ}
-                        placeholder="Search items"
+                        placeholder="Search products..."
+                        placeholderTextColor={colors.muted}
                         style={styles.searchInput}
                         autoCapitalize="none"
+                        returnKeyType="search"
+                        onSubmitEditing={hasSearch ? onSearch : undefined}
                     />
-                    <AppButton title="Search" onPress={onSearch} disabled={!hasSearch} compact />
+                    <AppButton
+                        title="Go"
+                        onPress={onSearch}
+                        disabled={!hasSearch}
+                        size="small"
+                    />
                 </View>
+            </View>
+
+            {/* Quick actions */}
+            <View style={styles.quickActions}>
+                <Pressable style={styles.actionChip} onPress={() => navigation.navigate("Profile")}>
+                    <Text style={styles.actionChipText}>Profile</Text>
+                </Pressable>
+                <Pressable style={styles.actionChip} onPress={() => navigation.navigate("Orders")}>
+                    <Text style={styles.actionChipText}>My Orders</Text>
+                </Pressable>
+                <Pressable style={styles.actionChip} onPress={() => navigation.navigate("AccountStatus")}>
+                    <Text style={styles.actionChipText}>Account</Text>
+                </Pressable>
+                <Pressable style={[styles.actionChip, styles.logoutChip]} onPress={logout}>
+                    <Text style={[styles.actionChipText, styles.logoutText]}>Logout</Text>
+                </Pressable>
             </View>
 
             <InlineError code={error} />
 
+            {/* Product list */}
             <FlatList
                 data={items}
                 keyExtractor={(item, idx) => String(item?.id || idx)}
                 contentContainerStyle={styles.list}
+                showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => <ItemCard item={item} onAddToCart={(it) => addItem(it, 1)} />}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadItems({ isRefresh: true })} />}
-                ListEmptyComponent={<Text style={styles.empty}>No items found.</Text>}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={() => loadItems({ isRefresh: true })}
+                        tintColor={colors.primary}
+                        colors={[colors.primary]}
+                    />
+                }
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No items available</Text>
+                        <Text style={styles.emptySubtext}>Pull to refresh or check back later</Text>
+                    </View>
+                }
             />
         </View>
     );
@@ -123,93 +152,114 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: colors.page,
     },
     container: {
         flex: 1,
-        padding: 16,
-        gap: 14,
         backgroundColor: colors.page,
     },
-    heroRow: {
-        flexDirection: "row",
-        gap: 12,
-        alignItems: "center",
+    header: {
+        backgroundColor: colors.card,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.lg,
+        paddingBottom: spacing.md,
+        borderBottomLeftRadius: radii.xl,
+        borderBottomRightRadius: radii.xl,
+        ...shadows.card,
+        gap: spacing.md,
     },
-    kicker: {
-        color: colors.accent,
-        fontWeight: "700",
-        textTransform: "uppercase",
-        letterSpacing: 0.8,
-        fontSize: 12,
-        marginBottom: 2,
+    headerTop: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+    },
+    greeting: {
+        fontSize: typography.caption.fontSize,
+        color: colors.muted,
+        marginBottom: spacing.xs,
     },
     title: {
-        fontSize: 26,
-        fontWeight: "800",
-        color: colors.text,
-    },
-    subtitle: {
-        color: colors.muted,
-        marginTop: 4,
-    },
-    badge: {
-        backgroundColor: colors.card,
-        borderRadius: 14,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        alignItems: "center",
-        minWidth: 70,
-        ...shadows.card,
-        borderWidth: 1,
-        borderColor: colors.border,
-    },
-    badgeText: {
-        fontSize: 22,
-        fontWeight: "800",
-        color: colors.primary,
-    },
-    badgeLabel: {
-        color: colors.muted,
-        fontSize: 12,
-    },
-    actions: {
-        flexDirection: "row",
-        gap: 10,
-        flexWrap: "wrap",
-    },
-    searchCard: {
-        backgroundColor: colors.card,
-        borderRadius: 14,
-        padding: 14,
-        gap: 8,
-        ...shadows.card,
-        borderWidth: 1,
-        borderColor: colors.border,
-    },
-    searchLabel: {
+        fontSize: typography.title.fontSize,
         fontWeight: "700",
         color: colors.text,
+        lineHeight: typography.title.lineHeight,
+    },
+    cartBadge: {
+        backgroundColor: colors.primaryLight,
+        borderRadius: radii.lg,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        alignItems: "center",
+        minWidth: 60,
+    },
+    cartCount: {
+        fontSize: typography.title.fontSize,
+        fontWeight: "800",
+        color: colors.primaryDark,
+    },
+    cartLabel: {
+        fontSize: typography.micro.fontSize,
+        color: colors.primaryDark,
+        fontWeight: "600",
     },
     searchRow: {
         flexDirection: "row",
-        gap: 10,
+        gap: spacing.sm,
         alignItems: "center",
     },
     searchInput: {
         flex: 1,
+        backgroundColor: colors.page,
+        borderRadius: radii.md,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.md,
+        fontSize: typography.body.fontSize,
+        color: colors.text,
+    },
+    quickActions: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: spacing.sm,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+    },
+    actionChip: {
+        backgroundColor: colors.card,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: radii.full,
         borderWidth: 1,
         borderColor: colors.border,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        backgroundColor: "#f9fafb",
+    },
+    actionChipText: {
+        fontSize: typography.caption.fontSize,
+        fontWeight: "600",
+        color: colors.textSecondary,
+    },
+    logoutChip: {
+        backgroundColor: colors.dangerLight,
+        borderColor: colors.dangerLight,
+    },
+    logoutText: {
+        color: colors.danger,
     },
     list: {
-        gap: 10,
-        paddingBottom: 20,
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.xxl,
+        gap: spacing.md,
     },
-    empty: {
-        paddingVertical: 10,
+    emptyContainer: {
+        alignItems: "center",
+        paddingVertical: spacing.xxxl,
+    },
+    emptyText: {
+        fontSize: typography.headline.fontSize,
+        fontWeight: "600",
+        color: colors.text,
+        marginBottom: spacing.xs,
+    },
+    emptySubtext: {
+        fontSize: typography.body.fontSize,
         color: colors.muted,
     },
 });

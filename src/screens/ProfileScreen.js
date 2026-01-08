@@ -1,11 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { ApiError, apiGet, apiPatch } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
-import { colors, shadows } from "../theme";
+import { colors, typography, spacing, radii, shadows } from "../theme";
 
 export default function ProfileScreen({ navigation }) {
     const { token, customer, completeLogin } = useAuth();
@@ -81,89 +91,163 @@ export default function ProfileScreen({ navigation }) {
     if (loading) {
         return (
             <View style={styles.loader}>
-                <ActivityIndicator />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Profile</Text>
+        <KeyboardAvoidingView
+            style={styles.flex}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                {/* Avatar Section */}
+                <View style={styles.avatarSection}>
+                    <View style={styles.avatarCircle}>
+                        <Ionicons name="person" size={48} color={colors.primary} />
+                    </View>
+                    <Text style={styles.phone}>{customer?.phone || ""}</Text>
+                    <Text style={styles.memberLabel}>Customer Account</Text>
+                </View>
 
-            <View style={styles.card}>
-                <Text style={styles.label}>Phone (read-only)</Text>
-                <Text style={styles.readOnly}>{customer?.phone || ""}</Text>
+                {/* Profile Card */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Personal Information</Text>
 
-                <Text style={styles.label}>Name</Text>
-                <TextInput value={name} onChangeText={setName} style={styles.input} editable={!saving} />
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Full Name</Text>
+                        <TextInput
+                            value={name}
+                            onChangeText={setName}
+                            style={styles.input}
+                            placeholder="Enter your name"
+                            placeholderTextColor={colors.muted}
+                            editable={!saving}
+                        />
+                    </View>
 
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    style={styles.input}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    editable={!saving}
-                />
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Email Address</Text>
+                        <TextInput
+                            value={email}
+                            onChangeText={setEmail}
+                            style={styles.input}
+                            placeholder="Enter your email"
+                            placeholderTextColor={colors.muted}
+                            autoCapitalize="none"
+                            keyboardType="email-address"
+                            editable={!saving}
+                        />
+                    </View>
 
-                <InlineError code={error} />
+                    <InlineError code={error} />
 
-                {saving ? (
-                    <ActivityIndicator />
-                ) : (
-                    <AppButton title="Save" onPress={onSave} disabled={!canSave} />
-                )}
+                    <AppButton
+                        title="Save Changes"
+                        onPress={onSave}
+                        disabled={!canSave}
+                        loading={saving}
+                        fullWidth
+                    />
+                </View>
 
-                <AppButton title="Manage addresses" onPress={() => navigation.navigate("Addresses")} variant="ghost" />
-            </View>
-        </View>
+                {/* Quick Actions */}
+                <View style={styles.actionsCard}>
+                    <Text style={styles.cardTitle}>Quick Actions</Text>
+                    <AppButton
+                        title="Manage Addresses"
+                        onPress={() => navigation.navigate("Addresses")}
+                        variant="outline"
+                        icon={<Ionicons name="location-outline" size={18} color={colors.primary} />}
+                        fullWidth
+                    />
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
+    flex: {
+        flex: 1,
+    },
     loader: {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: colors.page,
     },
     container: {
         flex: 1,
-        padding: 16,
-        justifyContent: "center",
-        gap: 12,
         backgroundColor: colors.page,
     },
-    title: {
-        fontSize: 26,
-        fontWeight: "800",
+    content: {
+        padding: spacing.lg,
+        paddingBottom: spacing.xxxl,
+    },
+    avatarSection: {
+        alignItems: "center",
+        paddingVertical: spacing.xl,
+    },
+    avatarCircle: {
+        width: 96,
+        height: 96,
+        borderRadius: radii.full,
+        backgroundColor: colors.primaryLight,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: spacing.md,
+    },
+    phone: {
+        ...typography.title,
         color: colors.text,
+        marginBottom: spacing.xs,
+    },
+    memberLabel: {
+        ...typography.callout,
+        color: colors.muted,
     },
     card: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 16,
-        padding: 14,
-        gap: 10,
         backgroundColor: colors.card,
+        borderRadius: radii.lg,
+        padding: spacing.lg,
+        marginBottom: spacing.lg,
         ...shadows.card,
     },
-    label: {
-        fontSize: 14,
-        fontWeight: "700",
-        color: colors.text,
+    actionsCard: {
+        backgroundColor: colors.card,
+        borderRadius: radii.lg,
+        padding: spacing.lg,
+        ...shadows.card,
     },
-    readOnly: {
-        fontSize: 14,
-        paddingVertical: 6,
+    cardTitle: {
+        ...typography.headline,
         color: colors.text,
+        marginBottom: spacing.lg,
+    },
+    inputGroup: {
+        marginBottom: spacing.md,
+    },
+    label: {
+        ...typography.callout,
+        fontWeight: "600",
+        color: colors.textSecondary,
+        marginBottom: spacing.sm,
     },
     input: {
         borderWidth: 1,
         borderColor: colors.border,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        backgroundColor: "#f9fafb",
+        borderRadius: radii.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: colors.page,
+        ...typography.body,
+        color: colors.text,
     },
 });

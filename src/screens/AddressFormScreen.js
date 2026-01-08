@@ -1,11 +1,20 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { ApiError, apiPatch, apiPost } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
-import { colors, shadows } from "../theme";
+import { colors, typography, spacing, radii, shadows } from "../theme";
 
 export default function AddressFormScreen({ navigation, route }) {
     const { token } = useAuth();
@@ -20,7 +29,11 @@ export default function AddressFormScreen({ navigation, route }) {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
-    const title = mode === "edit" ? "Edit Address" : "New Address";
+    const isEdit = mode === "edit";
+    const title = isEdit ? "Edit Address" : "Add New Address";
+    const subtitle = isEdit
+        ? "Update your delivery location details"
+        : "Enter a new delivery address";
 
     const canSave = useMemo(() => {
         if (saving) return false;
@@ -40,7 +53,7 @@ export default function AddressFormScreen({ navigation, route }) {
             const payload = {
                 label: label.trim() ? label.trim() : undefined,
                 line1: line1.trim(),
-                line2, // allow empty string
+                line2,
             };
 
             if (mode === "create") {
@@ -60,60 +73,162 @@ export default function AddressFormScreen({ navigation, route }) {
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>{title}</Text>
+        <KeyboardAvoidingView
+            style={styles.flex}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                {/* Header */}
+                <View style={styles.header}>
+                    <View style={styles.iconCircle}>
+                        <Ionicons
+                            name={isEdit ? "create-outline" : "add-circle-outline"}
+                            size={32}
+                            color={colors.primary}
+                        />
+                    </View>
+                    <Text style={styles.title}>{title}</Text>
+                    <Text style={styles.subtitle}>{subtitle}</Text>
+                </View>
 
-            <View style={styles.card}>
-                <Text style={styles.label}>Label</Text>
-                <TextInput value={label} onChangeText={setLabel} style={styles.input} editable={!saving} />
+                {/* Form Card */}
+                <View style={styles.card}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>
+                            Label <Text style={styles.optional}>(optional)</Text>
+                        </Text>
+                        <TextInput
+                            value={label}
+                            onChangeText={setLabel}
+                            style={styles.input}
+                            placeholder="e.g., Home, Office, Mom's place"
+                            placeholderTextColor={colors.muted}
+                            editable={!saving}
+                        />
+                    </View>
 
-                <Text style={styles.label}>Line 1 *</Text>
-                <TextInput value={line1} onChangeText={setLine1} style={styles.input} editable={!saving} />
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>
+                            Address Line 1 <Text style={styles.required}>*</Text>
+                        </Text>
+                        <TextInput
+                            value={line1}
+                            onChangeText={setLine1}
+                            style={styles.input}
+                            placeholder="Street address, building name"
+                            placeholderTextColor={colors.muted}
+                            editable={!saving}
+                        />
+                    </View>
 
-                <Text style={styles.label}>Line 2</Text>
-                <TextInput value={line2} onChangeText={setLine2} style={styles.input} editable={!saving} />
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>
+                            Address Line 2 <Text style={styles.optional}>(optional)</Text>
+                        </Text>
+                        <TextInput
+                            value={line2}
+                            onChangeText={setLine2}
+                            style={styles.input}
+                            placeholder="Apartment, suite, floor, etc."
+                            placeholderTextColor={colors.muted}
+                            editable={!saving}
+                        />
+                    </View>
 
-                <InlineError code={error} />
+                    <InlineError code={error} />
 
-                {saving ? <ActivityIndicator /> : <AppButton title="Save" onPress={onSave} disabled={!canSave} />}
-            </View>
-        </View>
+                    <AppButton
+                        title={isEdit ? "Update Address" : "Save Address"}
+                        onPress={onSave}
+                        disabled={!canSave}
+                        loading={saving}
+                        fullWidth
+                    />
+
+                    <AppButton
+                        title="Cancel"
+                        onPress={() => navigation.goBack()}
+                        variant="ghost"
+                        fullWidth
+                    />
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
+    flex: {
+        flex: 1,
+    },
     container: {
         flex: 1,
-        padding: 16,
-        justifyContent: "center",
-        gap: 12,
         backgroundColor: colors.page,
     },
+    content: {
+        padding: spacing.lg,
+        paddingBottom: spacing.xxxl,
+    },
+    header: {
+        alignItems: "center",
+        paddingVertical: spacing.xl,
+    },
+    iconCircle: {
+        width: 72,
+        height: 72,
+        borderRadius: radii.full,
+        backgroundColor: colors.primaryLight,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: spacing.lg,
+    },
     title: {
-        fontSize: 26,
-        fontWeight: "800",
+        ...typography.largeTitle,
         color: colors.text,
+        textAlign: "center",
+        marginBottom: spacing.sm,
+    },
+    subtitle: {
+        ...typography.body,
+        color: colors.textSecondary,
+        textAlign: "center",
     },
     card: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 14,
-        padding: 14,
-        gap: 10,
         backgroundColor: colors.card,
+        borderRadius: radii.lg,
+        padding: spacing.xl,
         ...shadows.card,
     },
-    label: {
-        fontSize: 14,
-        fontWeight: "700",
+    inputGroup: {
+        marginBottom: spacing.lg,
+    },
+    inputLabel: {
+        ...typography.callout,
+        fontWeight: "600",
         color: colors.text,
+        marginBottom: spacing.sm,
+    },
+    required: {
+        color: colors.danger,
+    },
+    optional: {
+        ...typography.caption,
+        color: colors.muted,
+        fontWeight: "400",
     },
     input: {
         borderWidth: 1,
         borderColor: colors.border,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        backgroundColor: "#f9fafb",
+        borderRadius: radii.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: colors.page,
+        ...typography.body,
+        color: colors.text,
     },
 });

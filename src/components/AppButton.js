@@ -1,64 +1,112 @@
 import React from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
-import { colors, shadows } from "../theme";
+import { Pressable, StyleSheet, Text, ActivityIndicator } from "react-native";
+import { colors, radii, shadows, spacing, typography } from "../theme";
 
-export default function AppButton({ title, onPress, disabled, variant = "primary", compact }) {
-    const isPrimary = variant === "primary";
+export default function AppButton({
+    title,
+    onPress,
+    disabled,
+    loading,
+    variant = "primary",
+    size = "medium",
+    fullWidth,
+    icon,
+}) {
     const isGhost = variant === "ghost";
     const isDanger = variant === "danger";
+    const isOutline = variant === "outline";
+    const isSmall = size === "small";
+    const isLarge = size === "large";
 
     return (
         <Pressable
             accessibilityRole="button"
             onPress={onPress}
-            disabled={disabled}
+            disabled={disabled || loading}
             style={({ pressed }) => [
                 styles.base,
-                compact && styles.compact,
+                isSmall && styles.small,
+                isLarge && styles.large,
                 isGhost && styles.ghost,
+                isOutline && styles.outline,
                 isDanger && styles.danger,
-                pressed && styles.pressed,
+                fullWidth && styles.fullWidth,
+                pressed && !disabled && styles.pressed,
                 disabled && styles.disabled,
             ]}
         >
-            <Text
-                style={[
-                    styles.text,
-                    isGhost && styles.ghostText,
-                    isDanger && styles.dangerText,
-                    disabled && styles.disabledText,
-                ]}
-            >
-                {title}
-            </Text>
+            {loading ? (
+                <ActivityIndicator size="small" color={isGhost || isOutline ? colors.primary : "#fff"} />
+            ) : (
+                <>
+                    {icon}
+                    <Text
+                        style={[
+                            styles.text,
+                            isSmall && styles.textSmall,
+                            isLarge && styles.textLarge,
+                            (isGhost || isOutline) && styles.ghostText,
+                            isDanger && styles.dangerText,
+                            disabled && styles.disabledText,
+                        ]}
+                    >
+                        {title}
+                    </Text>
+                </>
+            )}
         </Pressable>
     );
 }
 
 const styles = StyleSheet.create({
     base: {
-        backgroundColor: colors.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 12,
+        flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        ...shadows.card,
+        gap: spacing.sm,
+        backgroundColor: colors.primary,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
+        borderRadius: radii.md,
+        ...shadows.sm,
     },
-    compact: {
-        paddingVertical: 10,
-        paddingHorizontal: 14,
+    small: {
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: radii.sm,
+    },
+    large: {
+        paddingVertical: spacing.lg,
+        paddingHorizontal: spacing.xl,
+        borderRadius: radii.lg,
+    },
+    fullWidth: {
+        width: "100%",
     },
     text: {
         color: "#fff",
+        fontWeight: "600",
+        fontSize: typography.callout.fontSize,
+        letterSpacing: 0.2,
+    },
+    textSmall: {
+        fontSize: typography.caption.fontSize,
+    },
+    textLarge: {
+        fontSize: typography.body.fontSize,
         fontWeight: "700",
-        letterSpacing: 0.3,
     },
     ghost: {
         backgroundColor: "transparent",
-        borderWidth: 1,
+        shadowOpacity: 0,
+        elevation: 0,
+    },
+    outline: {
+        backgroundColor: "transparent",
+        borderWidth: 1.5,
         borderColor: colors.border,
-        ...shadows.card,
+        shadowOpacity: 0,
+        elevation: 0,
     },
     ghostText: {
         color: colors.text,
@@ -70,14 +118,15 @@ const styles = StyleSheet.create({
         color: "#fff",
     },
     pressed: {
-        transform: [{ scale: 0.99 }],
-        opacity: 0.9,
+        opacity: 0.85,
+        transform: [{ scale: 0.98 }],
     },
     disabled: {
-        backgroundColor: "#d1d5db",
+        backgroundColor: colors.borderLight,
         shadowOpacity: 0,
+        elevation: 0,
     },
     disabledText: {
-        color: "#f9fafb",
+        color: colors.muted,
     },
 });

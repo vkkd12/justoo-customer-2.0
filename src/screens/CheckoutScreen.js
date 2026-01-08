@@ -2,18 +2,23 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { ApiError, apiGet, apiPost } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../cart/CartContext";
 import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
-import { colors, shadows } from "../theme";
+import { colors, typography, spacing, radii, shadows } from "../theme";
 
 export default function CheckoutScreen({ navigation }) {
     const { token } = useAuth();
@@ -93,133 +98,350 @@ export default function CheckoutScreen({ navigation }) {
         }
     }
 
+    // Calculate order summary
+    const subtotal = items.reduce((sum, it) => {
+        const price = parseFloat(it.price) || 0;
+        const qty = parseInt(it.quantity) || 0;
+        return sum + price * qty;
+    }, 0);
+    const deliveryAmount = parseFloat(deliveryFee) || 0;
+    const total = subtotal + deliveryAmount;
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Checkout</Text>
-
-            <View style={styles.card}>
-                <Text style={styles.sectionTitle}>Delivery</Text>
-                <Text style={styles.label}>Delivery fee</Text>
-                <TextInput
-                    value={deliveryFee}
-                    onChangeText={setDeliveryFee}
-                    keyboardType="decimal-pad"
-                    style={styles.input}
-                    editable={!saving}
-                />
-
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Saved addresses</Text>
-                    {addressesLoading ? <ActivityIndicator /> : null}
-                    <FlatList
-                        data={addresses}
-                        keyExtractor={(a, idx) => String(a?.id || idx)}
-                        renderItem={({ item }) => (
-                            <View style={styles.pickRow}>
-                                <AppButton
-                                    title={addressId === item?.id ? "Selected" : "Select"}
-                                    onPress={() => setAddressId(item?.id)}
-                                    disabled={saving}
-                                    compact
-                                />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.pickText}>{item?.label || "(no label)"}</Text>
-                                    <Text style={styles.pickText}>{item?.line1 || ""}</Text>
-                                </View>
-                            </View>
-                        )}
-                        ListEmptyComponent={
-                            <View>
-                                <Text style={styles.empty}>No saved addresses.</Text>
-                                <AppButton
-                                    title="Add an address"
-                                    onPress={() => navigation.navigate("Addresses")}
-                                    disabled={saving}
-                                    compact
-                                />
-                            </View>
-                        }
-                    />
+        <KeyboardAvoidingView
+            style={styles.flex}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+            <ScrollView
+                style={styles.container}
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>Checkout</Text>
+                    <Text style={styles.subtitle}>Review your order and select delivery address</Text>
                 </View>
 
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Items</Text>
-                    {items.map((it, idx) => (
-                        <Text key={String(idx)} style={styles.pickText}>
-                            {String(it.name || "Item")} x {String(it.quantity)}
-                        </Text>
-                    ))}
-                    {!items.length ? <Text style={styles.empty}>Cart is empty.</Text> : null}
+                {/* Delivery Address Section */}
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="location-outline" size={20} color={colors.primary} />
+                        <Text style={styles.cardTitle}>Delivery Address</Text>
+                    </View>
+
+                    {addressesLoading ? (
+                        <ActivityIndicator size="small" color={colors.primary} />
+                    ) : addresses.length > 0 ? (
+                        <View style={styles.addressList}>
+                            {addresses.map((item) => (
+                                <Pressable
+                                    key={String(item?.id)}
+                                    style={({ pressed }) => [
+                                        styles.addressOption,
+                                        addressId === item?.id && styles.addressSelected,
+                                        pressed && styles.addressPressed,
+                                    ]}
+                                    onPress={() => setAddressId(item?.id)}
+                                    disabled={saving}
+                                >
+                                    <View style={styles.radioOuter}>
+                                        {addressId === item?.id && <View style={styles.radioInner} />}
+                                    </View>
+                                    <View style={styles.addressInfo}>
+                                        <Text style={styles.addressLabel}>{item?.label || "Address"}</Text>
+                                        <Text style={styles.addressLine}>{item?.line1 || ""}</Text>
+                                    </View>
+                                </Pressable>
+                            ))}
+                        </View>
+                    ) : (
+                        <View style={styles.noAddress}>
+                            <Ionicons name="alert-circle-outline" size={24} color={colors.warning} />
+                            <Text style={styles.noAddressText}>No saved addresses</Text>
+                            <AppButton
+                                title="Add Address"
+                                onPress={() => navigation.navigate("Addresses")}
+                                size="small"
+                                variant="outline"
+                            />
+                        </View>
+                    )}
+                </View>
+
+                {/* Order Items Section */}
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="cart-outline" size={20} color={colors.primary} />
+                        <Text style={styles.cardTitle}>Order Items</Text>
+                        <Text style={styles.itemCount}>{items.length} items</Text>
+                    </View>
+
+                    {items.length > 0 ? (
+                        <View style={styles.itemsList}>
+                            {items.map((it, idx) => (
+                                <View key={String(idx)} style={styles.itemRow}>
+                                    <View style={styles.itemInfo}>
+                                        <Text style={styles.itemName} numberOfLines={1}>
+                                            {String(it.name || "Item")}
+                                        </Text>
+                                        <Text style={styles.itemQty}>Qty: {String(it.quantity)}</Text>
+                                    </View>
+                                    <Text style={styles.itemPrice}>
+                                        ₹{((parseFloat(it.price) || 0) * (parseInt(it.quantity) || 0)).toFixed(2)}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    ) : (
+                        <Text style={styles.emptyText}>Your cart is empty</Text>
+                    )}
+                </View>
+
+                {/* Delivery Fee Section */}
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="bicycle-outline" size={20} color={colors.primary} />
+                        <Text style={styles.cardTitle}>Delivery Fee</Text>
+                    </View>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Amount (₹)</Text>
+                        <TextInput
+                            value={deliveryFee}
+                            onChangeText={setDeliveryFee}
+                            keyboardType="decimal-pad"
+                            style={styles.input}
+                            placeholder="0.00"
+                            placeholderTextColor={colors.muted}
+                            editable={!saving}
+                        />
+                    </View>
+                </View>
+
+                {/* Order Summary */}
+                <View style={styles.summaryCard}>
+                    <Text style={styles.summaryTitle}>Order Summary</Text>
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Subtotal</Text>
+                        <Text style={styles.summaryValue}>₹{subtotal.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Delivery</Text>
+                        <Text style={styles.summaryValue}>₹{deliveryAmount.toFixed(2)}</Text>
+                    </View>
+                    <View style={styles.divider} />
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.totalLabel}>Total</Text>
+                        <Text style={styles.totalValue}>₹{total.toFixed(2)}</Text>
+                    </View>
                 </View>
 
                 <InlineError code={error} />
 
-                {saving ? (
-                    <ActivityIndicator />
-                ) : (
-                    <AppButton title="Place order" onPress={onPlaceOrder} disabled={!canPlaceOrder} />
-                )}
-            </View>
-        </View>
+                <AppButton
+                    title="Place Order"
+                    onPress={onPlaceOrder}
+                    disabled={!canPlaceOrder}
+                    loading={saving}
+                    fullWidth
+                />
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
+    flex: {
+        flex: 1,
+    },
     container: {
         flex: 1,
-        padding: 16,
-        gap: 12,
         backgroundColor: colors.page,
     },
+    content: {
+        padding: spacing.lg,
+        paddingBottom: spacing.xxxl,
+    },
+    header: {
+        marginBottom: spacing.lg,
+    },
     title: {
-        fontSize: 26,
-        fontWeight: "800",
+        ...typography.largeTitle,
         color: colors.text,
+        marginBottom: spacing.xs,
+    },
+    subtitle: {
+        ...typography.body,
+        color: colors.textSecondary,
     },
     card: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 16,
-        padding: 14,
-        gap: 10,
-        flex: 1,
         backgroundColor: colors.card,
+        borderRadius: radii.lg,
+        padding: spacing.lg,
+        marginBottom: spacing.lg,
         ...shadows.card,
     },
-    sectionTitle: {
-        fontSize: 16,
+    cardHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    cardTitle: {
+        ...typography.headline,
+        color: colors.text,
+        flex: 1,
+    },
+    itemCount: {
+        ...typography.callout,
+        color: colors.muted,
+    },
+    addressList: {
+        gap: spacing.sm,
+    },
+    addressOption: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: spacing.md,
+        borderRadius: radii.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.page,
+        gap: spacing.md,
+    },
+    addressSelected: {
+        borderColor: colors.primary,
+        backgroundColor: colors.primaryLight,
+    },
+    addressPressed: {
+        opacity: 0.8,
+    },
+    radioOuter: {
+        width: 20,
+        height: 20,
+        borderRadius: radii.full,
+        borderWidth: 2,
+        borderColor: colors.primary,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    radioInner: {
+        width: 10,
+        height: 10,
+        borderRadius: radii.full,
+        backgroundColor: colors.primary,
+    },
+    addressInfo: {
+        flex: 1,
+    },
+    addressLabel: {
+        ...typography.callout,
         fontWeight: "600",
         color: colors.text,
     },
-    label: {
-        fontSize: 14,
-        fontWeight: "500",
+    addressLine: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        marginTop: spacing.xs / 2,
+    },
+    noAddress: {
+        alignItems: "center",
+        padding: spacing.lg,
+        gap: spacing.sm,
+    },
+    noAddressText: {
+        ...typography.body,
+        color: colors.textSecondary,
+    },
+    itemsList: {
+        gap: spacing.sm,
+    },
+    itemRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: spacing.sm,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    itemInfo: {
+        flex: 1,
+    },
+    itemName: {
+        ...typography.body,
         color: colors.text,
+    },
+    itemQty: {
+        ...typography.caption,
+        color: colors.muted,
+        marginTop: spacing.xs / 2,
+    },
+    itemPrice: {
+        ...typography.body,
+        fontWeight: "600",
+        color: colors.text,
+    },
+    emptyText: {
+        ...typography.body,
+        color: colors.muted,
+        textAlign: "center",
+        paddingVertical: spacing.lg,
+    },
+    inputGroup: {
+        marginTop: spacing.sm,
+    },
+    inputLabel: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        marginBottom: spacing.sm,
     },
     input: {
         borderWidth: 1,
         borderColor: colors.border,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        backgroundColor: "#f9fafb",
-    },
-    section: {
-        gap: 8,
-        paddingTop: 6,
-    },
-    pickRow: {
-        flexDirection: "row",
-        gap: 10,
-        alignItems: "center",
-        paddingVertical: 6,
-    },
-    pickText: {
-        fontSize: 13,
+        borderRadius: radii.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: colors.page,
+        ...typography.body,
         color: colors.text,
     },
-    empty: {
-        paddingVertical: 8,
-        color: colors.muted,
+    summaryCard: {
+        backgroundColor: colors.card,
+        borderRadius: radii.lg,
+        padding: spacing.lg,
+        marginBottom: spacing.lg,
+        ...shadows.card,
+    },
+    summaryTitle: {
+        ...typography.headline,
+        color: colors.text,
+        marginBottom: spacing.md,
+    },
+    summaryRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: spacing.sm,
+    },
+    summaryLabel: {
+        ...typography.body,
+        color: colors.textSecondary,
+    },
+    summaryValue: {
+        ...typography.body,
+        color: colors.text,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: colors.border,
+        marginVertical: spacing.md,
+    },
+    totalLabel: {
+        ...typography.headline,
+        color: colors.text,
+    },
+    totalValue: {
+        ...typography.headline,
+        color: colors.primary,
     },
 });

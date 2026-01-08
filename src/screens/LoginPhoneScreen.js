@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform } from "react-native";
 import { apiPost, ApiError } from "../api/http";
 import AppButton from "../components/AppButton";
-import { colors, shadows } from "../theme";
+import InlineError from "../components/InlineError";
+import { colors, radii, shadows, spacing, typography } from "../theme";
 
 export default function LoginPhoneScreen({ navigation }) {
     const [phone, setPhone] = useState("");
@@ -32,85 +33,116 @@ export default function LoginPhoneScreen({ navigation }) {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.hero}>
-                <Text style={styles.kicker}>Welcome back</Text>
-                <Text style={styles.title}>Sign in to continue</Text>
-                <Text style={styles.subtitle}>We’ll send a one-time code to your phone.</Text>
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+            <View style={styles.content}>
+                {/* Hero section */}
+                <View style={styles.hero}>
+                    <View style={styles.iconCircle}>
+                        <Text style={styles.iconEmoji}>📱</Text>
+                    </View>
+                    <Text style={styles.title}>Welcome back</Text>
+                    <Text style={styles.subtitle}>
+                        Enter your phone number and we'll send you a verification code
+                    </Text>
+                </View>
+
+                {/* Form card */}
+                <View style={styles.card}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Phone number</Text>
+                        <TextInput
+                            value={phone}
+                            onChangeText={setPhone}
+                            placeholder="Enter your phone number"
+                            placeholderTextColor={colors.muted}
+                            autoCapitalize="none"
+                            keyboardType="phone-pad"
+                            style={styles.input}
+                            editable={!loading}
+                        />
+                    </View>
+
+                    <InlineError code={error} />
+
+                    <AppButton
+                        title="Continue"
+                        onPress={onSendOtp}
+                        disabled={!canSubmit}
+                        loading={loading}
+                        size="large"
+                        fullWidth
+                    />
+                </View>
             </View>
-
-            <View style={styles.card}>
-                <Text style={styles.label}>Phone number</Text>
-                <TextInput
-                    value={phone}
-                    onChangeText={setPhone}
-                    placeholder="e.g. 9876543210"
-                    autoCapitalize="none"
-                    keyboardType="phone-pad"
-                    style={styles.input}
-                    editable={!loading}
-                />
-
-                {error ? <Text style={styles.error}>Error: {error}</Text> : null}
-
-                {loading ? <ActivityIndicator /> : <AppButton title="Send OTP" onPress={onSendOtp} disabled={!canSubmit} />}
-            </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
         backgroundColor: colors.page,
+    },
+    content: {
+        flex: 1,
         justifyContent: "center",
+        paddingHorizontal: spacing.xl,
+        paddingBottom: spacing.xxxl,
     },
     hero: {
-        marginBottom: 16,
-        gap: 6,
+        alignItems: "center",
+        marginBottom: spacing.xxl,
     },
-    kicker: {
-        color: colors.accent,
-        fontWeight: "700",
-        letterSpacing: 0.5,
-        textTransform: "uppercase",
-        fontSize: 12,
+    iconCircle: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: colors.primaryLight,
+        alignItems: "center",
+        justifyContent: "center",
+        marginBottom: spacing.lg,
+    },
+    iconEmoji: {
+        fontSize: 32,
     },
     title: {
-        fontSize: 28,
-        fontWeight: "700",
+        fontSize: typography.largeTitle.fontSize,
+        fontWeight: "800",
         color: colors.text,
+        textAlign: "center",
+        marginBottom: spacing.sm,
     },
     subtitle: {
-        color: colors.muted,
-        fontSize: 14,
+        fontSize: typography.body.fontSize,
+        color: colors.textSecondary,
+        textAlign: "center",
+        lineHeight: typography.body.lineHeight,
+        paddingHorizontal: spacing.lg,
     },
     card: {
         backgroundColor: colors.card,
-        borderRadius: 16,
-        padding: 18,
-        gap: 12,
+        borderRadius: radii.xl,
+        padding: spacing.xl,
+        gap: spacing.lg,
         ...shadows.card,
-        borderWidth: 1,
-        borderColor: colors.border,
+    },
+    inputGroup: {
+        gap: spacing.sm,
     },
     label: {
-        fontSize: 14,
+        fontSize: typography.callout.fontSize,
         fontWeight: "600",
         color: colors.text,
     },
     input: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        backgroundColor: "#f9fafb",
-        fontSize: 16,
-    },
-    error: {
-        color: colors.danger,
-        fontWeight: "600",
+        backgroundColor: colors.page,
+        borderRadius: radii.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        fontSize: typography.body.fontSize,
+        color: colors.text,
     },
 });

@@ -1,26 +1,47 @@
 import React from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import AppButton from "./AppButton";
-import { colors, shadows } from "../theme";
+import { StyleSheet, Text, TextInput, View, Pressable } from "react-native";
+import { colors, radii, shadows, spacing, typography } from "../theme";
 
 export default function CartItemRow({ item, onChangeQuantity, onRemove, disabled }) {
-    const productId = String(item?.productId || "");
     const quantity = item?.quantity === undefined || item?.quantity === null ? "" : String(item.quantity);
 
     return (
         <View style={styles.card}>
-            <Text style={styles.name}>{item?.name || "Item"}</Text>
+            <View style={styles.header}>
+                <Text style={styles.name} numberOfLines={2}>{item?.name || "Item"}</Text>
+                {item?.sellingPrice ? (
+                    <Text style={styles.price}>₹{item.sellingPrice}</Text>
+                ) : null}
+            </View>
 
-            <View style={styles.row}>
-                <Text style={styles.label}>Qty</Text>
-                <TextInput
-                    value={quantity}
-                    onChangeText={onChangeQuantity}
-                    keyboardType="number-pad"
-                    style={styles.input}
-                    editable={!disabled}
-                />
-                <AppButton title="Remove" onPress={onRemove} disabled={disabled} variant="ghost" compact />
+            <View style={styles.actions}>
+                <View style={styles.quantityControl}>
+                    <Pressable
+                        style={styles.qtyBtn}
+                        onPress={() => onChangeQuantity(String(Math.max(1, Number(quantity) - 1)))}
+                        disabled={disabled || Number(quantity) <= 1}
+                    >
+                        <Text style={styles.qtyBtnText}>−</Text>
+                    </Pressable>
+                    <TextInput
+                        value={quantity}
+                        onChangeText={onChangeQuantity}
+                        keyboardType="number-pad"
+                        style={styles.qtyInput}
+                        editable={!disabled}
+                        selectTextOnFocus
+                    />
+                    <Pressable
+                        style={styles.qtyBtn}
+                        onPress={() => onChangeQuantity(String(Number(quantity) + 1))}
+                        disabled={disabled}
+                    >
+                        <Text style={styles.qtyBtnText}>+</Text>
+                    </Pressable>
+                </View>
+                <Pressable style={styles.removeBtn} onPress={onRemove} disabled={disabled}>
+                    <Text style={styles.removeText}>Remove</Text>
+                </Pressable>
             </View>
         </View>
     );
@@ -28,36 +49,68 @@ export default function CartItemRow({ item, onChangeQuantity, onRemove, disabled
 
 const styles = StyleSheet.create({
     card: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 14,
-        padding: 12,
-        gap: 6,
         backgroundColor: colors.card,
-        ...shadows.card,
+        borderRadius: radii.lg,
+        padding: spacing.md,
+        gap: spacing.md,
+        ...shadows.sm,
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: spacing.md,
     },
     name: {
-        fontSize: 15,
-        fontWeight: "700",
+        flex: 1,
+        fontSize: typography.body.fontSize,
+        fontWeight: "600",
         color: colors.text,
+        lineHeight: typography.body.lineHeight,
     },
-    row: {
+    price: {
+        fontSize: typography.headline.fontSize,
+        fontWeight: "700",
+        color: colors.primary,
+    },
+    actions: {
         flexDirection: "row",
-        gap: 10,
+        justifyContent: "space-between",
         alignItems: "center",
-        flexWrap: "wrap",
-        paddingTop: 4,
     },
-    label: {
-        fontSize: 13,
-        fontWeight: "500",
+    quantityControl: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: colors.page,
+        borderRadius: radii.sm,
+        overflow: "hidden",
     },
-    input: {
-        minWidth: 80,
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+    qtyBtn: {
+        width: 36,
+        height: 36,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    qtyBtnText: {
+        fontSize: 20,
+        fontWeight: "600",
+        color: colors.textSecondary,
+    },
+    qtyInput: {
+        width: 48,
+        textAlign: "center",
+        fontSize: typography.body.fontSize,
+        fontWeight: "600",
+        color: colors.text,
+        paddingVertical: spacing.sm,
+    },
+    removeBtn: {
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+    },
+    removeText: {
+        fontSize: typography.caption.fontSize,
+        fontWeight: "600",
+        color: colors.danger,
     },
 });

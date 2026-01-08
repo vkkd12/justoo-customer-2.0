@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import AppButton from "./AppButton";
-import { colors, shadows } from "../theme";
+import { colors, radii, shadows, spacing, typography } from "../theme";
 
 const DEFAULT_IMAGE = require("../../assets/default-img.jpg");
 
@@ -10,105 +10,126 @@ export default function ItemCard({ item, onAddToCart }) {
     const imgUrl = String(item?.imgUrl || "").trim();
     const showRemote = useMemo(() => Boolean(imgUrl) && !imageError, [imgUrl, imageError]);
 
+    const hasDiscount = Number(item?.discountPercent) > 0;
+
     return (
         <View style={styles.card}>
-            <Image
-                source={showRemote ? { uri: imgUrl } : DEFAULT_IMAGE}
-                style={styles.image}
-                resizeMode="cover"
-                onError={() => setImageError(true)}
-            />
-
-            <View style={styles.headerRow}>
-                <Text style={styles.name}>{item?.name || ""}</Text>
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{String(item?.discountPercent ?? 0)}% off</Text>
-                </View>
+            <View style={styles.imageContainer}>
+                <Image
+                    source={showRemote ? { uri: imgUrl } : DEFAULT_IMAGE}
+                    style={styles.image}
+                    resizeMode="cover"
+                    onError={() => setImageError(true)}
+                />
+                {hasDiscount && (
+                    <View style={styles.discountBadge}>
+                        <Text style={styles.discountText}>{String(item?.discountPercent)}% off</Text>
+                    </View>
+                )}
             </View>
 
-            {item?.description ? <Text style={styles.desc}>{item.description}</Text> : null}
+            <View style={styles.content}>
+                <Text style={styles.name} numberOfLines={2}>{item?.name || ""}</Text>
+                {item?.description ? (
+                    <Text style={styles.desc} numberOfLines={2}>{item.description}</Text>
+                ) : null}
 
-            <View style={styles.metaRow}>
-                <View style={styles.pill}>
-                    <Text style={styles.pillLabel}>Price</Text>
-                    <Text style={styles.pillValue}>{String(item?.sellingPrice ?? "")}</Text>
+                <View style={styles.priceRow}>
+                    <Text style={styles.price}>₹{String(item?.sellingPrice ?? "")}</Text>
+                    {Number(item?.quantity) > 0 ? (
+                        <View style={styles.stockBadge}>
+                            <Text style={styles.stockText}>In stock</Text>
+                        </View>
+                    ) : (
+                        <View style={[styles.stockBadge, styles.outOfStock]}>
+                            <Text style={[styles.stockText, styles.outOfStockText]}>Out of stock</Text>
+                        </View>
+                    )}
                 </View>
-                <View style={styles.pill}>
-                    <Text style={styles.pillLabel}>Stock</Text>
-                    <Text style={styles.pillValue}>{String(item?.quantity ?? "")}</Text>
-                </View>
+
+                {onAddToCart && Number(item?.quantity) > 0 ? (
+                    <AppButton
+                        title="Add to cart"
+                        onPress={() => onAddToCart(item)}
+                        size="small"
+                        fullWidth
+                    />
+                ) : null}
             </View>
-
-            {onAddToCart ? <AppButton title="Add to cart" onPress={() => onAddToCart(item)} /> : null}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     card: {
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: 16,
-        padding: 14,
-        gap: 10,
         backgroundColor: colors.card,
+        borderRadius: radii.lg,
+        overflow: "hidden",
         ...shadows.card,
+    },
+    imageContainer: {
+        position: "relative",
     },
     image: {
         width: "100%",
-        height: 180,
-        borderRadius: 12,
-        backgroundColor: "#f2f4f7",
+        height: 160,
+        backgroundColor: colors.borderLight,
     },
-    headerRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 8,
+    discountBadge: {
+        position: "absolute",
+        top: spacing.sm,
+        left: spacing.sm,
+        backgroundColor: colors.accent,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: spacing.xs,
+        borderRadius: radii.sm,
+    },
+    discountText: {
+        color: "#fff",
+        fontSize: typography.micro.fontSize,
+        fontWeight: "700",
+    },
+    content: {
+        padding: spacing.md,
+        gap: spacing.sm,
     },
     name: {
-        fontSize: 17,
+        fontSize: typography.headline.fontSize,
+        fontWeight: "700",
+        color: colors.text,
+        lineHeight: typography.headline.lineHeight,
+    },
+    desc: {
+        fontSize: typography.caption.fontSize,
+        color: colors.textSecondary,
+        lineHeight: typography.callout.lineHeight,
+    },
+    priceRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginTop: spacing.xs,
+    },
+    price: {
+        fontSize: typography.title.fontSize,
         fontWeight: "800",
         color: colors.text,
     },
-    desc: {
-        fontSize: 13,
-        color: colors.muted,
+    stockBadge: {
+        backgroundColor: colors.successLight,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: spacing.xs,
+        borderRadius: radii.full,
     },
-    metaRow: {
-        flexDirection: "row",
-        gap: 10,
-        flexWrap: "wrap",
+    stockText: {
+        fontSize: typography.micro.fontSize,
+        fontWeight: "600",
+        color: colors.success,
     },
-    pill: {
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        backgroundColor: "#f1f5f9",
-        borderWidth: 1,
-        borderColor: colors.border,
-        minWidth: 90,
+    outOfStock: {
+        backgroundColor: colors.dangerLight,
     },
-    pillLabel: {
-        fontSize: 11,
-        color: colors.muted,
-        textTransform: "uppercase",
-        letterSpacing: 0.5,
-        fontWeight: "700",
-    },
-    pillValue: {
-        fontSize: 15,
-        fontWeight: "700",
-        color: colors.text,
-    },
-    badge: {
-        backgroundColor: "#e0f2fe",
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 999,
-    },
-    badgeText: {
-        color: colors.accent,
-        fontWeight: "700",
+    outOfStockText: {
+        color: colors.danger,
     },
 });
