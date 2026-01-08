@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { ApiError, apiPatch, apiPost } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
+import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
+import { colors, shadows } from "../theme";
 
 export default function AddressFormScreen({ navigation, route }) {
     const { token } = useAuth();
@@ -73,11 +75,7 @@ export default function AddressFormScreen({ navigation, route }) {
 
                 <InlineError code={error} />
 
-                {saving ? (
-                    <ActivityIndicator />
-                ) : (
-                    <Button title="Save" onPress={onSave} disabled={!canSave} />
-                )}
+                {saving ? <ActivityIndicator /> : <AppButton title="Save" onPress={onSave} disabled={!canSave} />}
             </View>
         </View>
     );
@@ -89,27 +87,33 @@ const styles = StyleSheet.create({
         padding: 16,
         justifyContent: "center",
         gap: 12,
+        backgroundColor: colors.page,
     },
     title: {
-        fontSize: 24,
-        fontWeight: "600",
+        fontSize: 26,
+        fontWeight: "800",
+        color: colors.text,
     },
     card: {
         borderWidth: 1,
-        borderColor: "#ddd",
-        borderRadius: 10,
-        padding: 12,
+        borderColor: colors.border,
+        borderRadius: 14,
+        padding: 14,
         gap: 10,
+        backgroundColor: colors.card,
+        ...shadows.card,
     },
     label: {
         fontSize: 14,
-        fontWeight: "500",
+        fontWeight: "700",
+        color: colors.text,
     },
     input: {
         borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        borderColor: colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        backgroundColor: "#f9fafb",
     },
 });

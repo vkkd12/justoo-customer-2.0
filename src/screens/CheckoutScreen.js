@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
     ActivityIndicator,
-    Button,
     FlatList,
     StyleSheet,
     Text,
@@ -12,7 +11,9 @@ import {
 import { ApiError, apiGet, apiPost } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../cart/CartContext";
+import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
+import { colors, shadows } from "../theme";
 
 export default function CheckoutScreen({ navigation }) {
     const { token } = useAuth();
@@ -115,10 +116,11 @@ export default function CheckoutScreen({ navigation }) {
                         keyExtractor={(a, idx) => String(a?.id || idx)}
                         renderItem={({ item }) => (
                             <View style={styles.pickRow}>
-                                <Button
+                                <AppButton
                                     title={addressId === item?.id ? "Selected" : "Select"}
                                     onPress={() => setAddressId(item?.id)}
                                     disabled={saving}
+                                    compact
                                 />
                                 <View style={{ flex: 1 }}>
                                     <Text style={styles.pickText}>{item?.label || "(no label)"}</Text>
@@ -129,10 +131,11 @@ export default function CheckoutScreen({ navigation }) {
                         ListEmptyComponent={
                             <View>
                                 <Text style={styles.empty}>No saved addresses.</Text>
-                                <Button
+                                <AppButton
                                     title="Add an address"
                                     onPress={() => navigation.navigate("Addresses")}
                                     disabled={saving}
+                                    compact
                                 />
                             </View>
                         }
@@ -141,9 +144,9 @@ export default function CheckoutScreen({ navigation }) {
 
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Items</Text>
-                    {items.map((it) => (
-                        <Text key={String(it.productId)} style={styles.pickText}>
-                            {String(it.name || it.productId)} x {String(it.quantity)}
+                    {items.map((it, idx) => (
+                        <Text key={String(idx)} style={styles.pickText}>
+                            {String(it.name || "Item")} x {String(it.quantity)}
                         </Text>
                     ))}
                     {!items.length ? <Text style={styles.empty}>Cart is empty.</Text> : null}
@@ -154,7 +157,7 @@ export default function CheckoutScreen({ navigation }) {
                 {saving ? (
                     <ActivityIndicator />
                 ) : (
-                    <Button title="Place order" onPress={onPlaceOrder} disabled={!canPlaceOrder} />
+                    <AppButton title="Place order" onPress={onPlaceOrder} disabled={!canPlaceOrder} />
                 )}
             </View>
         </View>
@@ -166,33 +169,40 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         gap: 12,
+        backgroundColor: colors.page,
     },
     title: {
-        fontSize: 24,
-        fontWeight: "600",
+        fontSize: 26,
+        fontWeight: "800",
+        color: colors.text,
     },
     card: {
         borderWidth: 1,
-        borderColor: "#ddd",
-        borderRadius: 10,
-        padding: 12,
+        borderColor: colors.border,
+        borderRadius: 16,
+        padding: 14,
         gap: 10,
         flex: 1,
+        backgroundColor: colors.card,
+        ...shadows.card,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: "600",
+        color: colors.text,
     },
     label: {
         fontSize: 14,
         fontWeight: "500",
+        color: colors.text,
     },
     input: {
         borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        borderColor: colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        backgroundColor: "#f9fafb",
     },
     section: {
         gap: 8,
@@ -206,9 +216,10 @@ const styles = StyleSheet.create({
     },
     pickText: {
         fontSize: 13,
+        color: colors.text,
     },
     empty: {
         paddingVertical: 8,
-        color: "#666",
+        color: colors.muted,
     },
 });

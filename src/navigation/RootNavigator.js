@@ -13,7 +13,6 @@ import AccountStatusScreen from "../screens/AccountStatusScreen";
 import AddressesScreen from "../screens/AddressesScreen";
 import AddressFormScreen from "../screens/AddressFormScreen";
 import OrdersScreen from "../screens/OrdersScreen";
-import CreateOrderScreen from "../screens/CreateOrderScreen";
 import CartScreen from "../screens/CartScreen";
 import CheckoutScreen from "../screens/CheckoutScreen";
 
@@ -51,11 +50,6 @@ export default function RootNavigator() {
                         options={{ title: "Address" }}
                     />
                     <Stack.Screen name="Orders" component={OrdersScreen} options={{ title: "Orders" }} />
-                    <Stack.Screen
-                        name="CreateOrder"
-                        component={CreateOrderScreen}
-                        options={{ title: "Create Order" }}
-                    />
                     <Stack.Screen name="Cart" component={CartScreen} options={{ title: "Cart" }} />
                     <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: "Checkout" }} />
                 </Stack.Navigator>

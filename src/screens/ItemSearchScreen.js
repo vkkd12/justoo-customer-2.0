@@ -11,8 +11,10 @@ import {
 
 import { ApiError, apiGet } from "../api/http";
 import { useCart } from "../cart/CartContext";
+import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
 import ItemCard from "../components/ItemCard";
+import { colors, shadows } from "../theme";
 
 export default function ItemSearchScreen({ route }) {
     const { addItem } = useCart();
@@ -66,14 +68,18 @@ export default function ItemSearchScreen({ route }) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Search</Text>
+            <Text style={styles.subtitle}>Find exactly what you need.</Text>
 
-            <TextInput
-                value={q}
-                onChangeText={setQ}
-                placeholder="Search items"
-                style={styles.searchInput}
-                autoCapitalize="none"
-            />
+            <View style={styles.searchRow}>
+                <TextInput
+                    value={q}
+                    onChangeText={setQ}
+                    placeholder="Search items"
+                    style={styles.searchInput}
+                    autoCapitalize="none"
+                />
+                <AppButton title="Go" onPress={() => load()} disabled={!effectiveQ} compact />
+            </View>
 
             <InlineError code={error} />
 
@@ -100,17 +106,30 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         gap: 12,
+        backgroundColor: colors.page,
     },
     title: {
-        fontSize: 24,
-        fontWeight: "600",
+        fontSize: 26,
+        fontWeight: "800",
+        color: colors.text,
+    },
+    subtitle: {
+        color: colors.muted,
+    },
+    searchRow: {
+        flexDirection: "row",
+        gap: 10,
+        alignItems: "center",
     },
     searchInput: {
+        flex: 1,
         borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
+        borderColor: colors.border,
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        backgroundColor: "#f9fafb",
+        ...shadows.card,
     },
     loader: {
         flex: 1,
@@ -124,6 +143,6 @@ const styles = StyleSheet.create({
     },
     empty: {
         paddingVertical: 10,
-        color: "#666",
+        color: colors.muted,
     },
 });

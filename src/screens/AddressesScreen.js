@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
-    Button,
     FlatList,
     RefreshControl,
     StyleSheet,
@@ -12,7 +11,9 @@ import {
 import { ApiError, apiDelete, apiGet } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import AddressCard from "../components/AddressCard";
+import AppButton from "../components/AppButton";
 import InlineError from "../components/InlineError";
+import { colors } from "../theme";
 
 export default function AddressesScreen({ navigation }) {
     const { token } = useAuth();
@@ -68,8 +69,11 @@ export default function AddressesScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.headerRow}>
-                <Text style={styles.title}>Addresses</Text>
-                <Button title="Add" onPress={() => navigation.navigate("AddressForm", { mode: "create" })} />
+                <View>
+                    <Text style={styles.kicker}>Your drop points</Text>
+                    <Text style={styles.title}>Addresses</Text>
+                </View>
+                <AppButton title="Add" onPress={() => navigation.navigate("AddressForm", { mode: "create" })} compact />
             </View>
 
             <InlineError code={error} />
@@ -102,15 +106,24 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         gap: 12,
+        backgroundColor: colors.page,
     },
     headerRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
     },
+    kicker: {
+        color: colors.accent,
+        fontWeight: "700",
+        fontSize: 12,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+    },
     title: {
-        fontSize: 24,
-        fontWeight: "600",
+        fontSize: 26,
+        fontWeight: "800",
+        color: colors.text,
     },
     list: {
         gap: 10,
@@ -118,6 +131,6 @@ const styles = StyleSheet.create({
     },
     empty: {
         paddingVertical: 10,
-        color: "#666",
+        color: colors.muted,
     },
 });

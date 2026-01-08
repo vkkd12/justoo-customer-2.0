@@ -1,5 +1,7 @@
 import React from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import AppButton from "./AppButton";
+import { colors, shadows } from "../theme";
 
 export default function AddressCard({ address, onEdit, onDelete }) {
     return (
@@ -9,8 +11,8 @@ export default function AddressCard({ address, onEdit, onDelete }) {
             {address?.line2 ? <Text style={styles.line}>{address.line2}</Text> : null}
 
             <View style={styles.actions}>
-                <Button title="Edit" onPress={onEdit} />
-                <Button title="Delete" onPress={onDelete} />
+                <AppButton title="Edit" onPress={onEdit} variant="ghost" compact />
+                <AppButton title="Delete" onPress={onDelete} variant="danger" compact />
             </View>
         </View>
     );
@@ -19,18 +21,21 @@ export default function AddressCard({ address, onEdit, onDelete }) {
 const styles = StyleSheet.create({
     card: {
         borderWidth: 1,
-        borderColor: "#ddd",
-        borderRadius: 10,
+        borderColor: colors.border,
+        borderRadius: 14,
         padding: 12,
         gap: 6,
+        backgroundColor: colors.card,
+        ...shadows.card,
     },
     label: {
         fontSize: 15,
-        fontWeight: "600",
+        fontWeight: "700",
+        color: colors.text,
     },
     line: {
         fontSize: 13,
-        color: "#444",
+        color: colors.text,
     },
     actions: {
         flexDirection: "row",

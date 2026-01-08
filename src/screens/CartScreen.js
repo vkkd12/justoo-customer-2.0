@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { Button, FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
 import { useCart } from "../cart/CartContext";
+import AppButton from "../components/AppButton";
 import CartItemRow from "../components/CartItemRow";
+import { colors } from "../theme";
 
 export default function CartScreen({ navigation }) {
     const { items, totalCount, setQuantity, removeItem, clear } = useCart();
@@ -22,8 +24,11 @@ export default function CartScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.headerRow}>
-                <Text style={styles.title}>Cart ({totalCount})</Text>
-                <Button title="Clear" onPress={onClear} disabled={busy || items.length === 0} />
+                <View>
+                    <Text style={styles.kicker}>Your basket</Text>
+                    <Text style={styles.title}>Cart ({totalCount})</Text>
+                </View>
+                <AppButton title="Clear" onPress={onClear} disabled={busy || items.length === 0} variant="ghost" compact />
             </View>
 
             <FlatList
@@ -42,7 +47,7 @@ export default function CartScreen({ navigation }) {
             />
 
             <View style={styles.footer}>
-                <Button title="Checkout" onPress={() => navigation.navigate("Checkout")} disabled={!canCheckout} />
+                <AppButton title="Proceed to checkout" onPress={() => navigation.navigate("Checkout")} disabled={!canCheckout} />
             </View>
         </View>
     );
@@ -53,15 +58,24 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         gap: 12,
+        backgroundColor: colors.page,
     },
     headerRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
     },
+    kicker: {
+        color: colors.accent,
+        fontWeight: "700",
+        fontSize: 12,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+    },
     title: {
         fontSize: 24,
-        fontWeight: "600",
+        fontWeight: "800",
+        color: colors.text,
     },
     list: {
         gap: 10,
@@ -69,7 +83,7 @@ const styles = StyleSheet.create({
     },
     empty: {
         paddingVertical: 10,
-        color: "#666",
+        color: colors.muted,
     },
     footer: {
         paddingTop: 6,

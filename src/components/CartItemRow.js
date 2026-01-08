@@ -1,5 +1,7 @@
 import React from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
+import AppButton from "./AppButton";
+import { colors, shadows } from "../theme";
 
 export default function CartItemRow({ item, onChangeQuantity, onRemove, disabled }) {
     const productId = String(item?.productId || "");
@@ -7,8 +9,7 @@ export default function CartItemRow({ item, onChangeQuantity, onRemove, disabled
 
     return (
         <View style={styles.card}>
-            <Text style={styles.name}>{item?.name || productId}</Text>
-            <Text style={styles.meta}>Product: {productId}</Text>
+            <Text style={styles.name}>{item?.name || "Item"}</Text>
 
             <View style={styles.row}>
                 <Text style={styles.label}>Qty</Text>
@@ -19,7 +20,7 @@ export default function CartItemRow({ item, onChangeQuantity, onRemove, disabled
                     style={styles.input}
                     editable={!disabled}
                 />
-                <Button title="Remove" onPress={onRemove} disabled={disabled} />
+                <AppButton title="Remove" onPress={onRemove} disabled={disabled} variant="ghost" compact />
             </View>
         </View>
     );
@@ -28,18 +29,17 @@ export default function CartItemRow({ item, onChangeQuantity, onRemove, disabled
 const styles = StyleSheet.create({
     card: {
         borderWidth: 1,
-        borderColor: "#ddd",
-        borderRadius: 10,
+        borderColor: colors.border,
+        borderRadius: 14,
         padding: 12,
         gap: 6,
+        backgroundColor: colors.card,
+        ...shadows.card,
     },
     name: {
         fontSize: 15,
-        fontWeight: "600",
-    },
-    meta: {
-        fontSize: 12,
-        color: "#666",
+        fontWeight: "700",
+        color: colors.text,
     },
     row: {
         flexDirection: "row",
@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
     input: {
         minWidth: 80,
         borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 8,
+        borderColor: colors.border,
+        borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 10,
     },

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
-    Button,
     FlatList,
     RefreshControl,
     StyleSheet,
@@ -13,6 +12,7 @@ import { ApiError, apiGet } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import InlineError from "../components/InlineError";
 import OrderCard from "../components/OrderCard";
+import { colors } from "../theme";
 
 export default function OrdersScreen({ navigation }) {
     const { token } = useAuth();
@@ -56,10 +56,8 @@ export default function OrdersScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <View style={styles.headerRow}>
-                <Text style={styles.title}>Orders</Text>
-                <Button title="New" onPress={() => navigation.navigate("CreateOrder")} />
-            </View>
+            <Text style={styles.title}>Your orders</Text>
+            <Text style={styles.subtitle}>Track your recent purchases and deliveries.</Text>
 
             <InlineError code={error} />
 
@@ -84,16 +82,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        gap: 12,
-    },
-    headerRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+        gap: 10,
+        backgroundColor: colors.page,
     },
     title: {
-        fontSize: 24,
-        fontWeight: "600",
+        fontSize: 26,
+        fontWeight: "800",
+        color: colors.text,
+    },
+    subtitle: {
+        color: colors.muted,
     },
     list: {
         gap: 10,
@@ -101,6 +99,6 @@ const styles = StyleSheet.create({
     },
     empty: {
         paddingVertical: 10,
-        color: "#666",
+        color: colors.muted,
     },
 });
