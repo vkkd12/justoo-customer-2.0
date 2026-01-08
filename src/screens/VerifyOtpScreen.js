@@ -14,14 +14,9 @@ export default function VerifyOtpScreen({ route }) {
     const canSubmit = useMemo(() => phone && otp.trim().length > 0 && !loading, [phone, otp, loading]);
 
     async function onVerify() {
-        if (!phone) {
-            setError("PHONE_REQUIRED");
-            return;
-        }
-
         const normalizedOtp = otp.trim();
-        if (!normalizedOtp) {
-            setError("OTP_REQUIRED");
+        if (!phone || !normalizedOtp) {
+            setError("PHONE_AND_OTP_REQUIRED");
             return;
         }
 
