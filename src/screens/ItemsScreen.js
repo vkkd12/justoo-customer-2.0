@@ -10,7 +10,7 @@ import {
     Pressable,
 } from "react-native";
 
-import { ApiError, apiGet } from "../api/http";
+import { ApiError } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../cart/CartContext";
 import AppButton from "../components/AppButton";
@@ -19,7 +19,7 @@ import ItemCard from "../components/ItemCard";
 import { colors, radii, shadows, spacing, typography } from "../theme";
 
 export default function ItemsScreen({ navigation }) {
-    const { logout } = useAuth();
+    const { logout, authedGet } = useAuth();
     const { addItem, totalCount } = useCart();
 
     const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ export default function ItemsScreen({ navigation }) {
 
         setError(null);
         try {
-            const data = await apiGet("/customer/items");
+            const data = await authedGet("/customer/items");
             setItems(Array.isArray(data?.items) ? data.items : []);
         } catch (e) {
             setError(e instanceof ApiError ? e.code : "NETWORK_ERROR");
@@ -105,6 +105,9 @@ export default function ItemsScreen({ navigation }) {
 
             {/* Quick actions */}
             <View style={styles.quickActions}>
+                <Pressable style={styles.actionChip} onPress={() => navigation.navigate("Categories")}>
+                    <Text style={styles.actionChipText}>Categories</Text>
+                </Pressable>
                 <Pressable style={styles.actionChip} onPress={() => navigation.navigate("Profile")}>
                     <Text style={styles.actionChipText}>Profile</Text>
                 </Pressable>

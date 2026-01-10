@@ -15,6 +15,8 @@ import AddressFormScreen from "../screens/AddressFormScreen";
 import OrdersScreen from "../screens/OrdersScreen";
 import CartScreen from "../screens/CartScreen";
 import CheckoutScreen from "../screens/CheckoutScreen";
+import CategoriesScreen from "../screens/CategoriesScreen";
+import CategoryItemsScreen from "../screens/CategoryItemsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +38,8 @@ export default function RootNavigator() {
             {isAuthed ? (
                 <Stack.Navigator initialRouteName="Items">
                     <Stack.Screen name="Items" component={ItemsScreen} options={{ title: "Items" }} />
+                    <Stack.Screen name="Categories" component={CategoriesScreen} options={{ title: "Categories" }} />
+                    <Stack.Screen name="CategoryItems" component={CategoryItemsScreen} options={{ title: "Category" }} />
                     <Stack.Screen name="ItemSearch" component={ItemSearchScreen} options={{ title: "Search" }} />
                     <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: "Profile" }} />
                     <Stack.Screen

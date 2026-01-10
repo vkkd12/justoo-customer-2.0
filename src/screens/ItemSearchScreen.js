@@ -11,13 +11,15 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import { ApiError, apiGet } from "../api/http";
+import { ApiError } from "../api/http";
+import { useAuth } from "../auth/AuthContext";
 import { useCart } from "../cart/CartContext";
 import InlineError from "../components/InlineError";
 import ItemCard from "../components/ItemCard";
 import { colors, typography, spacing, radii, shadows } from "../theme";
 
 export default function ItemSearchScreen({ route }) {
+    const { authedGet } = useAuth();
     const { addItem } = useCart();
     const initialQ = String(route?.params?.q || "");
 
@@ -42,7 +44,7 @@ export default function ItemSearchScreen({ route }) {
 
         setError(null);
         try {
-            const data = await apiGet("/customer/items/search", { query: { q: effectiveQ } });
+            const data = await authedGet("/customer/items/search", { query: { q: effectiveQ } });
             setItems(Array.isArray(data?.items) ? data.items : []);
         } catch (e) {
             setError(e instanceof ApiError ? e.code : "NETWORK_ERROR");

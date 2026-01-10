@@ -100,7 +100,7 @@ export default function CheckoutScreen({ navigation }) {
 
     // Calculate order summary
     const subtotal = items.reduce((sum, it) => {
-        const price = parseFloat(it.price) || 0;
+        const price = parseFloat(it.sellingPrice) || 0;
         const qty = parseInt(it.quantity) || 0;
         return sum + price * qty;
     }, 0);
@@ -189,7 +189,7 @@ export default function CheckoutScreen({ navigation }) {
                                         <Text style={styles.itemQty}>Qty: {String(it.quantity)}</Text>
                                     </View>
                                     <Text style={styles.itemPrice}>
-                                        ₹{((parseFloat(it.price) || 0) * (parseInt(it.quantity) || 0)).toFixed(2)}
+                                        ₹{((parseFloat(it.sellingPrice) || 0) * (parseInt(it.quantity) || 0)).toFixed(2)}
                                     </Text>
                                 </View>
                             ))}
