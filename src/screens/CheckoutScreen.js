@@ -27,12 +27,13 @@ export default function CheckoutScreen({ navigation }) {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
-    const [deliveryFee, setDeliveryFee] = useState("0");
+    const [deliveryFee, setDeliveryFee] = useState(10); // Default fee, can be updated from server
 
     const [addressesLoading, setAddressesLoading] = useState(true);
     const [addresses, setAddresses] = useState([]);
     const [addressId, setAddressId] = useState(null);
 
+    // Fetch addresses and delivery fee
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -53,6 +54,24 @@ export default function CheckoutScreen({ navigation }) {
             cancelled = true;
         };
     }, [token]);
+
+    // Fetch delivery fee from server (uncomment when API is ready)
+    // This is a global setting configured by admin, not dependent on address/distance
+    // useEffect(() => {
+    //     let cancelled = false;
+    //     (async () => {
+    //         try {
+    //             const data = await apiGet("/customer/settings", { token });
+    //             if (cancelled) return;
+    //             if (data?.deliveryFee != null) {
+    //                 setDeliveryFee(parseFloat(data.deliveryFee) || 10);
+    //             }
+    //         } catch {
+    //             // Use default delivery fee if fetch fails
+    //         }
+    //     })();
+    //     return () => { cancelled = true; };
+    // }, [token]);
 
     const canPlaceOrder = useMemo(() => {
         if (saving) return false;
@@ -81,7 +100,7 @@ export default function CheckoutScreen({ navigation }) {
 
             const payload = {
                 items: normalizedItems,
-                deliveryFee: String(deliveryFee || "0"),
+                deliveryFee: String(deliveryFee),
             };
 
             payload.addressId = addressId;
@@ -90,7 +109,13 @@ export default function CheckoutScreen({ navigation }) {
             if (!data?.order) throw new ApiError("ORDER_CREATE_FAILED");
 
             await clear();
-            navigation.navigate("Orders");
+            navigation.reset({
+                index: 1,
+                routes: [
+                    { name: "Items" },
+                    { name: "Orders" },
+                ],
+            });
         } catch (e) {
             setError(e instanceof ApiError ? e.code : "NETWORK_ERROR");
         } finally {
@@ -104,7 +129,7 @@ export default function CheckoutScreen({ navigation }) {
         const qty = parseInt(it.quantity) || 0;
         return sum + price * qty;
     }, 0);
-    const deliveryAmount = parseFloat(deliveryFee) || 0;
+    const deliveryAmount = deliveryFee;
     const total = subtotal + deliveryAmount;
 
     return (
@@ -199,26 +224,6 @@ export default function CheckoutScreen({ navigation }) {
                     )}
                 </View>
 
-                {/* Delivery Fee Section */}
-                <View style={styles.card}>
-                    <View style={styles.cardHeader}>
-                        <Ionicons name="bicycle-outline" size={20} color={colors.primary} />
-                        <Text style={styles.cardTitle}>Delivery Fee</Text>
-                    </View>
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Amount (₹)</Text>
-                        <TextInput
-                            value={deliveryFee}
-                            onChangeText={setDeliveryFee}
-                            keyboardType="decimal-pad"
-                            style={styles.input}
-                            placeholder="0.00"
-                            placeholderTextColor={colors.muted}
-                            editable={!saving}
-                        />
-                    </View>
-                </View>
-
                 {/* Order Summary */}
                 <View style={styles.summaryCard}>
                     <Text style={styles.summaryTitle}>Order Summary</Text>
@@ -292,6 +297,11 @@ const styles = StyleSheet.create({
         ...typography.headline,
         color: colors.text,
         flex: 1,
+    },
+    deliveryFeeValue: {
+        ...typography.title3,
+        color: colors.text,
+        fontWeight: "600",
     },
     itemCount: {
         ...typography.callout,

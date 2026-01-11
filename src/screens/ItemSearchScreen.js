@@ -32,10 +32,19 @@ export default function ItemSearchScreen({ route }) {
     const effectiveQ = useMemo(() => q.trim(), [q]);
 
     async function load({ isRefresh } = {}) {
+        // Empty query - just show empty state, no error
         if (!effectiveQ) {
             setLoading(false);
             setItems([]);
-            setError("QUERY_REQUIRED");
+            setError(null);
+            return;
+        }
+
+        // Single character - show empty state (no API call)
+        if (effectiveQ.length === 1) {
+            setLoading(false);
+            setItems([]);
+            setError(null);
             return;
         }
 

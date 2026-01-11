@@ -18,7 +18,7 @@ export default function ItemCard({ item, onAddToCart }) {
                 <Image
                     source={showRemote ? { uri: imgUrl } : DEFAULT_IMAGE}
                     style={styles.image}
-                    resizeMode="cover"
+                    resizeMode="contain"
                     onError={() => setImageError(true)}
                 />
                 {hasDiscount && (
