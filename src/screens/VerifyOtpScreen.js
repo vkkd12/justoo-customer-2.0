@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform } from "react-native";
+import { StyleSheet, Text, TextInput, View, KeyboardAvoidingView, Platform, ScrollView, Keyboard, TouchableWithoutFeedback } from "react-native";
 import { apiPost, ApiError } from "../api/http";
 import { useAuth } from "../auth/AuthContext";
 import AppButton from "../components/AppButton";
@@ -47,50 +47,59 @@ export default function VerifyOtpScreen({ route }) {
     return (
         <KeyboardAvoidingView
             style={styles.container}
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 50}
         >
-            <View style={styles.content}>
-                {/* Hero section */}
-                <View style={styles.hero}>
-                    <View style={styles.iconCircle}>
-                        <Text style={styles.iconEmoji}>🔐</Text>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.content}>
+                        {/* Hero section */}
+                        <View style={styles.hero}>
+                            <View style={styles.iconCircle}>
+                                <Text style={styles.iconEmoji}>🔐</Text>
+                            </View>
+                            <Text style={styles.title}>Verification code</Text>
+                            <Text style={styles.subtitle}>
+                                Enter the 6-digit code sent to{"\n"}
+                                <Text style={styles.phoneHighlight}>{phone || "your phone"}</Text>
+                            </Text>
+                        </View>
+
+                        {/* Form card */}
+                        <View style={styles.card}>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>One-time code</Text>
+                                <TextInput
+                                    value={otp}
+                                    onChangeText={setOtp}
+                                    placeholder="Enter 6-digit code"
+                                    placeholderTextColor={colors.muted}
+                                    keyboardType="number-pad"
+                                    style={styles.input}
+                                    editable={!loading}
+                                    maxLength={6}
+                                    textAlign="center"
+                                />
+                            </View>
+
+                            <InlineError code={error} />
+
+                            <AppButton
+                                title="Verify & Continue"
+                                onPress={onVerify}
+                                disabled={!canSubmit}
+                                loading={loading}
+                                size="large"
+                                fullWidth
+                            />
+                        </View>
                     </View>
-                    <Text style={styles.title}>Verification code</Text>
-                    <Text style={styles.subtitle}>
-                        Enter the 6-digit code sent to{"\n"}
-                        <Text style={styles.phoneHighlight}>{phone || "your phone"}</Text>
-                    </Text>
-                </View>
-
-                {/* Form card */}
-                <View style={styles.card}>
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>One-time code</Text>
-                        <TextInput
-                            value={otp}
-                            onChangeText={setOtp}
-                            placeholder="Enter 6-digit code"
-                            placeholderTextColor={colors.muted}
-                            keyboardType="number-pad"
-                            style={styles.input}
-                            editable={!loading}
-                            maxLength={6}
-                            textAlign="center"
-                        />
-                    </View>
-
-                    <InlineError code={error} />
-
-                    <AppButton
-                        title="Verify & Continue"
-                        onPress={onVerify}
-                        disabled={!canSubmit}
-                        loading={loading}
-                        size="large"
-                        fullWidth
-                    />
-                </View>
-            </View>
+                </ScrollView>
+            </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
     );
 }
@@ -99,6 +108,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.page,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: 40,
     },
     content: {
         flex: 1,

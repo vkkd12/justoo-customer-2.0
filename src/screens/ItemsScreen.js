@@ -70,7 +70,6 @@ export default function ItemsScreen({ navigation }) {
             <View style={styles.header}>
                 <View style={styles.headerTop}>
                     <View style={{ flex: 1 }}>
-                        <Text style={styles.greeting}>Hello there 👋</Text>
                         <Text style={styles.title}>What are you looking for?</Text>
                     </View>
                     <Pressable
@@ -98,7 +97,7 @@ export default function ItemsScreen({ navigation }) {
                         title="Go"
                         onPress={onSearch}
                         disabled={!hasSearch}
-                        size="small"
+                    // size="small"
                     />
                 </View>
             </View>
